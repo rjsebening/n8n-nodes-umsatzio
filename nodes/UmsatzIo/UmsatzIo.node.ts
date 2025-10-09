@@ -4,7 +4,8 @@ import {
 	INodeTypeDescription,
 	IDataObject,
 	INodeExecutionData,
-	NodeConnectionType,
+	INodeInputConfiguration,
+	INodeOutputConfiguration,
 } from 'n8n-workflow';
 
 import { resourceSelector } from './actions/resource.selector';
@@ -44,9 +45,8 @@ export class UmsatzIo implements INodeType {
 			// @ts-expect-error free-form description
 			description: 'Interact with Umsatz.io API (powered by agentur-systeme.de)',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
-		usableAsTool: true,
+		inputs: [{ type: 'main' } as INodeInputConfiguration],
+		outputs: [{ type: 'main' } as INodeOutputConfiguration],
 		credentials: [{ name: 'umsatzIoApi', required: true }],
 		properties: [
 			resourceSelector,

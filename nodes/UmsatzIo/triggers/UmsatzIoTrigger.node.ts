@@ -5,8 +5,8 @@ import {
 	INodeTypeDescription,
 	IWebhookResponseData,
 	IDataObject,
-	NodeConnectionType,
 	NodeOperationError,
+	INodeOutputConfiguration,
 } from 'n8n-workflow';
 
 // properties
@@ -53,7 +53,7 @@ export class UmsatzIoTrigger implements INodeType {
 			},
 		],
 		inputs: [],
-		outputs: [NodeConnectionType.Main],
+		outputs: [{ type: 'main' } as INodeOutputConfiguration],
 		properties: instantProperties,
 	};
 
