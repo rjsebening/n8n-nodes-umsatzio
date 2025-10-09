@@ -8,8 +8,6 @@ To use the **Umsatz.io Node in n8n**, you need to create an **API Key** from you
 2. In the left-hand menu, go to **Settings → Integrations**.
 3. Select the section **API Keys**.
 4. Copy the **API Key**.
-5. If you lose the key, you must create a new one.
-6. Deleted keys become invalid immediately.
 
 ## ⚙️ Use in n8n
 
@@ -22,5 +20,3 @@ To use the **Umsatz.io Node in n8n**, you need to create an **API Key** from you
 ## 📌 Notes
 
 - API Keys have full access to your Umsatz.io account – keep them safe and private.
-- You can create multiple keys (e.g. for different systems or environments).
-- Keys can be revoked at any time.

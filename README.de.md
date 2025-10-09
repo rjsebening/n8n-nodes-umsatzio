@@ -1,230 +1,178 @@
-# n8n-nodes-umsatzio (Deutsch)
 
-![n8n Community Node](https://img.shields.io/badge/n8n-community--node-FF6D5A)  
-![Version](https://img.shields.io/badge/version-1.0.0-blue)  
+# n8n-nodes-umsatzio
+
+![n8n Community Node](https://img.shields.io/badge/n8n-community--node-FF6D5A)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Inoffizielle n8n-Integration für **Umsatz.io – das erste CRM mit Setter-Closer-Prinzip**.  
-Automatisiere Kontakt- und Deal-Prozesse, reagiere in Echtzeit auf Events und halte deine Pipeline ohne manuelle Arbeit in Bewegung.
+### Inoffizielle n8n-Integration für **Umsatz.io – das erste CRM mit Setter-Closer-Prinzip**
 
-## Was ist n8n?
+Automatisiere Kontakt-, Deal- und Aktivitäts-Prozesse, reagiere in Echtzeit auf Ereignisse und halte deine Pipeline in Bewegung – **ohne manuelle Arbeit**.
 
-n8n ist ein visuelles Automatisierungs-Tool.  
-Durch die Verbindung von Umsatz.io mit deinen anderen Apps automatisierst du wiederkehrende Aufgaben und sparst massiv Zeit.
+## 🧭 Überblick
 
-## ⚖️ Rechtlicher Hinweis
+Diese Community-Node verbindet **Umsatz.io (Setter-Closer CRM)** nahtlos mit deinen Workflows in n8n.  
+Von der Kontakt-Erstellung über Deal-Verwaltung bis hin zu Webhooks für Echtzeit-Events – du kannst deine Revenue-Prozesse komplett automatisieren.
 
-Diese Community-Node nutzt öffentlich dokumentierte Umsatz.io-Schnittstellen und steht **in keiner Verbindung zu Umsatz.io** (keine Partnerschaft, kein Sponsoring, keine offizielle Freigabe).  
-Alle Marken gehören ihren jeweiligen Eigentümern.
+## ⚙️ Kernfunktionen
 
-> **Hinweis:** Diese Node wurde **von der Community** für die Umsatz.io API entwickelt. Offiziellen Support zu Umsatz.io erhältst du direkt bei Umsatz.io.
+### 👤 Kontakte
 
-## 🚀 Überblick
+| Aktion | Beschreibung |
+|--------|---------------|
+| **Create Contact** | Neuen Kontakt erstellen (kein Upsert). |
+| **Find Contact by Email** | Bestehenden Kontakt anhand der E-Mail suchen. |
+| **Get Contacts by Filter Group** | Eine gespeicherte Filtergruppe anwenden und Kontakte abrufen. |
+| **Search Contacts** | Kontakte per Volltextsuche durchsuchen. |
+| **Update Contact (by ID)** | Kontakt anhand seiner ID aktualisieren. |
+| **Upsert Contact (by Email)** | Per E-Mail suchen, bei Treffer aktualisieren, sonst neuen Kontakt erstellen. |
 
-Die Node verbindet **Umsatz.io (Setter-Closer CRM)** nahtlos mit deinen Workflows in n8n. Von Kontakt-Erstellung und Suche bis hin zu Deal-Events – du automatisierst zentrale Revenue-Abläufe ganz ohne Code.
+### 💼 Deals
 
-## ✨ Kernfunktionen
+| Aktion | Beschreibung |
+|--------|---------------|
+| **Create Deal** | Neuen Deal im System anlegen. |
+| **Find Deal by ID** | Einen bestimmten Deal per ID abrufen. |
+| **Find Related Deals by Email** | Alle Deals zu einer E-Mail-Adresse (Kontakt) abrufen. |
+| **List by Stage** | Alle Deals einer Pipeline-Stage abrufen. |
+| **Change Pipeline/Stage** | Einen Deal in eine andere Stage verschieben. |
+| **Update Deal (per Deal-ID)** | Bestehenden Deal aktualisieren. |
+| **Get Pipelines** | Alle Pipelines auflisten. |
+| **Get Pipeline** | Details zu einer Pipeline inkl. Stages abrufen. |
+| **Get Deals by Filter Group** | Eine gespeicherte Filtergruppe anwenden und Deals abrufen. |
 
-### 👤 **Kontakt-Funktionen**
+### 📝 Aktivitäten
 
--   **Kontakt erstellen** – Neuen Kontakt anlegen
-    
--   **Per E-Mail suchen** – Kontakte per E-Mail finden
-    
--   **Kontakte suchen** – Filter/Suche (Volltextsuche)
-    
--   **Kontakt aktualisieren** – Felder aktualisieren
-    
--   **Kontakt-Notizen abrufen** – Notizen zum Kontakt lesen
-    
--   **Telefon-Aktivitäten abrufen** – Anruf-Aktivitäten laden
-    
--   **Kontakt-Notiz erstellen** – Neue Notiz anhängen
-    
+| Aktion | Beschreibung |
+|--------|---------------|
+| **Create Note** | Interne Notiz an einen Kontakt anhängen (z. B. Kontext, Updates oder Erinnerungen). |
+| **List Notes** | Alle Notizen eines Kontakts abrufen. |
+| **List Email Activities** | E-Mail-Historie zu einem Kontakt abrufen. |
+| **List Phone Call Activities** | Alle Telefon-Aktivitäten eines Kontakts abrufen. |
+| **Log Email** | Eine E-Mail-Aktivität manuell an einen Kontakt anhängen (z. B. externe Korrespondenz). |
 
-> Entspricht deinen `contact`-Operationen aus dem Code (Liste `contactOperations`).
+### 🔔 Webhooks
 
-### ⚡ **Echtzeit-Webhooks (Trigger)**
+| Aktion | Beschreibung |
+|--------|---------------|
+| **List Webhooks** | Alle registrierten Webhooks anzeigen. |
+| **Create Webhook** | Einen neuen Webhook in Umsatz.io erstellen. |
+| **Update Webhook** | Bestehenden Webhook aktualisieren. |
+| **Delete Webhook** | Webhook löschen. |
 
-Reagiere sofort auf Ereignisse in Umsatz.io:
+### ⚡ Trigger-Events (Echtzeit-Webhooks)
 
--   `newContact` – Neuer Kontakt erstellt
-    
--   `changeContactProperty` – Kontaktfeld geändert
-    
--   `newDeal` – Neuer Deal erstellt
-    
--   `changeDealProperty` – Dealfeld geändert
-    
--   `updateDealStage` – Deal-Stage gewechselt
-    
--   `submitForm` – Formular abgesendet
-    
--   `newActivity` – Neue Aktivität angelegt
-    
+Reagiere sofort auf Ereignisse aus Umsatz.io:
 
-> Der Trigger registriert Webhooks beim Aktivieren und entfernt sie beim Deaktivieren in n8n.
+| Event | Beschreibung |
+|--------|---------------|
+| **New Contact** | Wird ausgelöst, wenn ein neuer Kontakt erstellt wird. |
+| **Change Contact Property** | Wird ausgelöst, wenn ein Kontaktfeld geändert oder ausgefüllt wird. |
+| **New Deal** | Wird ausgelöst, wenn ein neuer Deal erstellt wird. |
+| **Change Deal Property** | Wird ausgelöst, wenn ein Dealfeld geändert oder ausgefüllt wird. |
+| **Update Deal Stage** | Wird ausgelöst, wenn ein Deal in eine andere Stage verschoben wird. |
+| **Submit Form** | Wird ausgelöst, wenn ein Formular in Umsatz.io abgesendet wird. |
+| **New Phone Call Activity** | Wird ausgelöst, wenn ein Benutzer einen neuen Anruf in der App protokolliert. |
 
-### 🔐 Sichere API-Anbindung
 
--   **Header-Auth** via `x-tenant-api-key`
-    
--   **Base-URL** https://app.umsatz.io/api/graphql
-    
--   Integrierter **Credential-Test** & saubere Fehlermeldungen
-    
+## 🔐 Authentifizierung
+
+Die Node verwendet **API-Key-Authentifizierung**.  
+- Base-URL: `https://app.umsatz.io/api/graphql`  
+- Auth-Header: `api-key: <YOUR_API_KEY>`
+
+Ein integrierter Credential-Test prüft deine Verbindung direkt in n8n.
+
 
 ## 📦 Installation
 
 ### Voraussetzungen
-
--   n8n `>= 1.107.1`
-    
--   Aktiver Umsatz.io-Account und **API Key**
-    
+- n8n **≥ 1.107.1**
+- Aktiver Umsatz.io-Account mit **API-Key**
 
 ### Installation über Community Nodes
 
-1.  In n8n öffnen
-    
-2.  **Settings → Community Nodes → Install**
-    
-3.  Einen der folgenden Paketnamen installieren:
-    
+1. In n8n öffnen → **Settings → Community Nodes → Install**  
+2. Paketname eingeben:
 
-**Variante A — Scoped (persönlicher Scope)**
-
-```
+```bash
+# Variante A — Scoped (empfohlen)
 @rjsebening/n8n-nodes-umsatzio
 
-```
-
-**Variante B — Unscoped (Standard)**
-
-```
+# Variante B — Unscoped
 n8n-nodes-umsatzio
 
 ```
 
-> Beide Pakete enthalten den gleichen Code. Die Scoped-Variante vermeidet spätere Namenskonflikte.
+3.  **n8n neu starten** – die Node erscheint in der Liste.
 
-4.  **n8n neu starten** – die Node erscheint in der Liste.
-    
-
-## 🔧 Konfiguration
-
-### Zugangsdaten anlegen
-
-1.  In n8n **Credentials → New**
-    
-2.  **„Umsatz.io API“** auswählen
-    
-3.  Ausfüllen:
-    
-    -   **API Key** → dein Umsatz.io API Key (gesendet als `x-api-key`)
-        
-    -   **Base-URL** → https://app.umsatz.io/api/graphql
-        
-4.  Speichern und **Test** ausführen
-    
-
-> Falls du die korrekte Endpoint-URL deines Tenants nicht kennst, prüfe die Umsatz.io-Doku oder kontaktiere den Support. Die Node abstrahiert REST/GraphQL, je nach deiner Implementierung.
-
-## 🧩 Nodes & Operationen
+## 🧩 Node-Übersicht
 
 ### Umsatz.io (Action Node)
 
-**Resource: Contact**
+**Verfügbare Ressourcen**
 
--   Kontakt erstellen
-    
--   Per E-Mail abrufen
-    
--   Kontakte suchen
-    
--   Kontakt aktualisieren
-    
--   Kontakt-Notizen abrufen
-    
--   Telefon-Aktivitäten abrufen
-    
--   Kontakt-Notiz erstellen
-    
+| Resource               | Beschreibung                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| **Contact**            | Erstellen, suchen, updaten oder upserten von Kontakten.                            |
+| **Deal**               | Deals erstellen, verschieben, listen, aktualisieren oder per Filtergruppe abrufen. |
+| **Activity**           | E-Mails, Anrufe und Notizen verwalten.                                             |
+| **Webhook**            | Webhooks erstellen, listen, aktualisieren und löschen.                             |
+| **Raw Query/Mutation** | Direkte GraphQL-Abfragen an die API ausführen.                                     |
 
-_(Wenn du später Deal/Pipeline-Aktionen hinzufügst, hier ergänzen.)_
 
-### Umsatz.io Trigger (Events)
+### Umsatz.io Trigger (Realtime Node)
 
-**Event-Typen**
+-   Registriert automatisch Webhooks beim Aktivieren des Workflows.
+    
+-   Entfernt sie beim Deaktivieren, um doppelte Events zu vermeiden.
+    
+-   Gibt den **rohen Event-Payload** zurück (JSON-Response von Umsatz.io).
+    
+## 📖 Anwendungsbeispiele
 
--   Neuer Kontakt (`newContact`)
+-   Kontakte automatisch in dein CRM einpflegen, wenn ein Umsatz.io-Formular abgeschickt wird.
     
--   Kontakt-Eigenschaft geändert (`changeContactProperty`)
+-   Slack-Benachrichtigung bei **Stage-Wechsel** eines Deals.
     
--   Neuer Deal (`newDeal`)
+-   Telefon-Aktivitäten automatisch in eine Google-Sheet-Report-Tabelle schreiben.
     
--   Deal-Eigenschaft geändert (`changeDealProperty`)
+-   Notizen oder E-Mails zu Kontakten synchronisieren, wenn externe Tools (z. B. Abrechnung oder Onboarding) ein Event auslösen.
     
--   Deal-Stage aktualisiert (`updateDealStage`)
-    
--   Formular abgeschickt (`submitForm`)
-    
--   Neue Aktivität (`newActivity`)
-    
-
-**Verhalten**
-
--   Registriert Webhooks beim Aktivieren, entfernt sie beim Deaktivieren
-    
--   Übergibt das rohe Event-Payload; Anreicherung/Routing baust du im Workflow
-    
-
-## 📖 Beispiele
-
--   Kontakte in deinem CRM automatisch anlegen/aktualisieren, wenn ein Formular in Umsatz.io abgesendet wird
-    
--   Slack-Benachrichtigung bei **Deal-Stage-Wechsel**
-    
--   Telefon-Aktivitäten ins Data Warehouse für Reports schreiben
-    
--   Notizen zu Kontakten anhängen, wenn Ereignisse in anderen Tools passieren (Billing, Onboarding, …)
+-   Automatisiertes Updaten von Deal-Status, sobald Formulare ausgefüllt oder Zahlungen eingegangen sind.
     
 
 ## 🛠️ Troubleshooting
 
--   **„Received request for unknown webhook … is not registered.“**  
-    Sicherstellen, dass der Trigger **aktiv** ist. Ein/Aus schalten, um die Registrierung zu erzwingen.
-    
--   **„Cannot set headers after they are sent to the client.“**  
-    Kommt von Express in n8n, wenn mehrfach geantwortet wird. Prüfe Custom Code oder doppelte Webhook-Behandlung.
-    
--   **Ping/Delete-Warnungen im Log**  
-    Entstehen u. U., wenn Webhooks außerhalb von n8n entfernt wurden. Trigger erneut aktivieren.
-    
+| Problem                                       | Lösung                                                                                         |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **„Received request for unknown webhook…“**   | Trigger deaktivieren und wieder aktivieren, um Registrierung neu anzulegen.                    |
+| **„Cannot set headers after they are sent…“** | Meist durch doppeltes Response-Handling in Custom Code verursacht.                             |
+| **Webhook-Warnungen im Log („Ping/Delete“) ** | Entstehen, wenn Webhooks manuell in Umsatz.io gelöscht wurden. Einfach Trigger neu aktivieren. |
 
-## 📬 About Me
+
+
+## 📬 Über den Entwickler
 
 Ich bin **[Rezk Jörg Sebening](https://github.com/rjsebening)** – Experte für Business-Automatisierung (DACH).  
-Ich entwickle n8n-Nodes und Automations-Systeme, damit Agenturen, Coaches und Dienstleister **ohne** manuelle Arbeit sauber liefern.
+Ich entwickle n8n-Nodes und Systeme, damit Agenturen, Coaches und Dienstleister **ohne manuelle Arbeit** skalieren und sauber liefern können.
 
-👉 Folge mir auf GitHub für neue DACH-Integrationen und Automation-Vorlagen.
+👉 Folge mir auf GitHub, um neue DACH-Integrationen und Automations-Vorlagen zu erhalten.
 
-## 📋 Disclaimer
+## ⚖️ Rechtlicher Hinweis
 
-Diese **inoffizielle** Community-Node steht **in keiner Verbindung** zu Umsatz.io (keine Partnerschaft, kein Sponsoring, keine offizielle Freigabe).  
-Sie stellt lediglich einen Connector zu öffentlich erreichbaren Endpunkten bereit.
-
-**Wichtig**
+Diese Community-Node steht **in keiner Verbindung zu Umsatz.io**.  
+Keine Partnerschaft, kein Sponsoring, keine offizielle Freigabe.  
+Sie nutzt ausschließlich **öffentliche API-Endpunkte**.
 
 -   Von der Community entwickelt & gepflegt
     
--   Für Plattform-/API-Themen: **Umsatz.io** Support kontaktieren
+-   Für API-Fragen → Support von **Umsatz.io** kontaktieren
     
 -   Alle Marken & Logos gehören ihren Eigentümern
-    
--   Die Node verbindet lediglich mit den von dir konfigurierten Endpunkten
     
 
 ## 📄 Lizenz
 
-**MIT** — Beiträge willkommen.
+**MIT License**  
+Beiträge und Pull Requests sind willkommen!
