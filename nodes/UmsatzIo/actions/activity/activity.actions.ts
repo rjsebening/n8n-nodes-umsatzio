@@ -1,7 +1,6 @@
-// nodes/UmsatzIo/actions/activity.actions.ts
 import { IExecuteFunctions, ApplicationError, IDataObject } from 'n8n-workflow';
 import { gqlCall, coerceDate } from '../../helpers/gql';
-import { ensureSlateRichText, createNoteWithOptionalPin } from '../../helpers/notes'; // nodes/UmsatzIo/actions/activity.actions.ts
+import { ensureSlateRichText, createNoteWithOptionalPin } from '../../helpers/notes';
 
 async function getContactEmailByContactId(ctx: IExecuteFunctions, contactId: string): Promise<string> {
 	const r = await gqlCall(ctx, {
@@ -12,11 +11,50 @@ async function getContactEmailByContactId(ctx: IExecuteFunctions, contactId: str
 	return (r?.contact?.data?.global_contact_email || '').toString().trim();
 }
 
-export async function handleActivity(this: IExecuteFunctions, i: number, operation: string): Promise<unknown> {
-	const contactId = this.getNodeParameter('contactId', i) as string;
+export async function getPhoneCallActivityById(
+	ctx: IExecuteFunctions,
+	phoneCallActivityId: string,
+): Promise<IDataObject> {
+	const data = await gqlCall(ctx, {
+		operationName: 'PhoneCallById',
+		query: `query PhoneCallById($id: ID!) {
+      PhoneCallActivity(id: $id) {
+        id
+        activityTime
+        phoneCallResult
+        phoneCallActivityType { id label category }
+        parentId
+        parentType
+        phoneNumber
+        description
+        author { id profile { email firstName lastName } }
+        createdAt
+        updatedAt
+      }
+    }`,
+		variables: { id: phoneCallActivityId },
+	});
 
+	const activity = data?.PhoneCallActivity ?? null;
+
+	let descriptionParsed: unknown = activity?.description;
+	if (typeof descriptionParsed === 'string') {
+		try {
+			descriptionParsed = JSON.parse(descriptionParsed);
+		} catch {}
+	}
+
+	return {
+		activity: activity ? { ...activity, descriptionParsed } : null,
+		found: Boolean(activity),
+	};
+}
+
+export async function handleActivity(this: IExecuteFunctions, i: number, operation: string): Promise<unknown> {
 	switch (operation) {
 		case 'createNote': {
+			const contactId = this.getNodeParameter('contactId', i) as string;
+
 			const noteText = this.getNodeParameter('noteText', i, '') as string;
 			const pinNote = this.getNodeParameter('pinNote', i, false) as boolean;
 			const makeBold = this.getNodeParameter('makeBold', i, false) as boolean;
@@ -26,6 +64,8 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 		}
 
 		case 'logEmail': {
+			const contactId = this.getNodeParameter('contactId', i) as string;
+
 			const activityTimeRaw = this.getNodeParameter('activityTime', i) as string;
 			const plain = this.getNodeParameter('description', i, '') as string;
 			const makeBold = this.getNodeParameter('makeBold', i, false) as boolean;
@@ -67,6 +107,8 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 		}
 
 		case 'listEmailActivities': {
+			const contactId = this.getNodeParameter('contactId', i) as string;
+
 			const page = this.getNodeParameter('page', i, 0) as number;
 			const limit = this.getNodeParameter('limit', i, 50) as number;
 
@@ -90,6 +132,8 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 		}
 
 		case 'listPhoneCallActivities': {
+			const contactId = this.getNodeParameter('contactId', i) as string;
+
 			const page = this.getNodeParameter('page', i, 0) as number;
 			const limit = this.getNodeParameter('limit', i, 50) as number;
 
@@ -125,6 +169,8 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 		}
 
 		case 'listNotes': {
+			const contactId = this.getNodeParameter('contactId', i) as string;
+
 			const page = this.getNodeParameter('page', i, 0) as number;
 			const limit = this.getNodeParameter('limit', i, 50) as number;
 
@@ -151,6 +197,14 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 				pinned: data?.contactNotes?.pinnedNotes ?? [],
 				count: data?.contactNotes?.count ?? 0,
 			};
+		}
+
+		case 'getPhoneCallActivityById': {
+			const phoneCallActivityId = (this.getNodeParameter('phoneCallActivityId', i) as string).trim();
+			if (!phoneCallActivityId) {
+				throw new ApplicationError('Missing required parameter "phoneCallActivityId".');
+			}
+			return await getPhoneCallActivityById(this, phoneCallActivityId);
 		}
 
 		default:

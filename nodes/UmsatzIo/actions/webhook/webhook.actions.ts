@@ -18,11 +18,22 @@ export async function handleWebhook(this: IExecuteFunctions, i: number, operatio
 			let properties = this.getNodeParameter('properties', i, []) as string[];
 
 			// Falls updateDealStage gewählt → pipelineId + stageId in properties
-			if (triggers?.includes('updateDealStage')) {
+			/*if (triggers?.includes('updateDealStage')) {
 				const pipelineId = this.getNodeParameter('pipelineId', i, '') as string;
 				const stageId = this.getNodeParameter('stageId', i, '') as string;
 				if (pipelineId) properties = [...properties, pipelineId];
 				if (stageId) properties = [...properties, stageId];
+			}*/
+
+			if (triggers?.includes('updateDealStage')) {
+				const scope = (this.getNodeParameter('dealStageScope', i, 'all') as 'all' | 'specific') ?? 'all';
+				if (scope === 'specific') {
+					const pipelineId = (this.getNodeParameter('pipelineId', i, '') as string) || '';
+					const stageId = (this.getNodeParameter('stageId', i, '') as string) || '';
+					if (!pipelineId) throw new ApplicationError('updateDealStage requires a pipeline.');
+					if (!stageId) throw new ApplicationError('updateDealStage requires a stage.');
+					properties = [...properties, pipelineId, stageId];
+				}
 			}
 
 			// Falls submitForm gewählt → formIds in properties
@@ -30,22 +41,6 @@ export async function handleWebhook(this: IExecuteFunctions, i: number, operatio
 				const formIds = this.getNodeParameter('formIds', i, []) as string[];
 				if (Array.isArray(formIds) && formIds.length) {
 					properties = [...properties, ...formIds];
-				}
-			}
-
-			if (triggers?.includes?.('newActivity')) {
-				// Call Type
-				const callTypeMode = (this.getNodeParameter('callTypeMode', i, 'any') as 'any' | 'specific') ?? 'any';
-				if (callTypeMode === 'specific') {
-					const callTypeId = this.getNodeParameter('phoneCallActivityTypeId', i) as string;
-					if (callTypeId) properties.push(callTypeId);
-				}
-
-				// Call Result
-				const callResultMode = (this.getNodeParameter('callResultMode', i, 'any') as 'any' | 'specific') ?? 'any';
-				if (callResultMode === 'specific') {
-					const callResultKey = this.getNodeParameter('callResultKey', i) as string;
-					if (callResultKey) properties.push(callResultKey);
 				}
 			}
 
@@ -69,32 +64,28 @@ export async function handleWebhook(this: IExecuteFunctions, i: number, operatio
 			let properties = this.getNodeParameter('properties', i, []) as string[];
 
 			if (Array.isArray(triggers) && triggers.length) {
-				if (triggers.includes('updateDealStage')) {
+				/*if (triggers.includes('updateDealStage')) {
 					const pipelineId = this.getNodeParameter('pipelineId', i, '') as string;
 					const stageId = this.getNodeParameter('stageId', i, '') as string;
 					if (pipelineId) properties = [...properties, pipelineId];
 					if (stageId) properties = [...properties, stageId];
+				}*/
+
+				if (triggers.includes('updateDealStage')) {
+					const scope = (this.getNodeParameter('dealStageScope', i, 'all') as 'all' | 'specific') ?? 'all';
+					if (scope === 'specific') {
+						const pipelineId = (this.getNodeParameter('pipelineId', i, '') as string) || '';
+						const stageId = (this.getNodeParameter('stageId', i, '') as string) || '';
+						if (!pipelineId) throw new ApplicationError('updateDealStage requires a pipeline.');
+						if (!stageId) throw new ApplicationError('updateDealStage requires a stage.');
+						properties = [...properties, pipelineId, stageId];
+					}
 				}
+
 				if (triggers.includes('submitForm')) {
 					const formIds = this.getNodeParameter('formIds', i, []) as string[];
 					if (Array.isArray(formIds) && formIds.length) {
 						properties = [...properties, ...formIds];
-					}
-				}
-
-				if (triggers?.includes?.('newActivity')) {
-					// Call Type
-					const callTypeMode = (this.getNodeParameter('callTypeMode', i, 'any') as 'any' | 'specific') ?? 'any';
-					if (callTypeMode === 'specific') {
-						const callTypeId = this.getNodeParameter('phoneCallActivityTypeId', i) as string;
-						if (callTypeId) properties.push(callTypeId);
-					}
-
-					// Call Result
-					const callResultMode = (this.getNodeParameter('callResultMode', i, 'any') as 'any' | 'specific') ?? 'any';
-					if (callResultMode === 'specific') {
-						const callResultKey = this.getNodeParameter('callResultKey', i) as string;
-						if (callResultKey) properties.push(callResultKey);
 					}
 				}
 			}

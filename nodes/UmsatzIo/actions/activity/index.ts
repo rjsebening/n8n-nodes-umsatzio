@@ -16,6 +16,12 @@ export const activityOperations: INodeProperties[] = [
 				description: 'Add an internal note to a contact to capture context, updates, or reminders',
 			},
 			{
+				name: 'Get Phone Call by ID',
+				value: 'getPhoneCallActivityById',
+				action: 'Get a phone call by id',
+				description: 'Fetch a single phone call activity by its ID',
+			},
+			{
 				name: 'List Email Activities',
 				value: 'listEmailActivities',
 				action: 'List contact emails',
@@ -46,13 +52,19 @@ export const activityOperations: INodeProperties[] = [
 
 export const activityFields: INodeProperties[] = [
 	// Contact picker (für alle Ops)
+	// Contact picker NUR für Ops, die einen Kontakt brauchen
 	{
 		displayName: 'Search',
 		name: 'contactSearch',
 		type: 'string',
 		default: '',
 		placeholder: 'Name, email, …',
-		displayOptions: { show: { resource: ['activity'] } },
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['createNote', 'logEmail', 'listEmailActivities', 'listNotes', 'listPhoneCallActivities'],
+			},
+		},
 	},
 	{
 		displayName: 'Contact Name or ID',
@@ -61,7 +73,12 @@ export const activityFields: INodeProperties[] = [
 		typeOptions: { loadOptionsMethod: 'getContacts' },
 		required: true,
 		default: '',
-		displayOptions: { show: { resource: ['activity'] } },
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['createNote', 'logEmail', 'listEmailActivities', 'listNotes', 'listPhoneCallActivities'],
+			},
+		},
 		description:
 			'Choose the contact. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 	},
@@ -142,6 +159,20 @@ export const activityFields: INodeProperties[] = [
 		typeOptions: { minValue: 1, numberPrecision: 0 },
 		displayOptions: {
 			show: { resource: ['activity'], operation: ['listEmailActivities', 'listPhoneCallActivities', 'listNotes'] },
+		},
+	},
+	{
+		displayName: 'Phone Call Activity ID',
+		name: 'phoneCallActivityId',
+		type: 'string',
+		default: '',
+		placeholder: '58bb6680-84e6-480b-bb34-bfd351a822bc',
+		description: 'The ID of the phone call activity to fetch',
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['getPhoneCallActivityById'],
+			},
 		},
 	},
 ];

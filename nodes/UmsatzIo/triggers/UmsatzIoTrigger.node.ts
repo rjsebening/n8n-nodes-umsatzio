@@ -14,6 +14,7 @@ import { instantProperties } from './trigger.instant.properties';
 // helpers
 import { gqlCall } from '../helpers/gql';
 import { listWebhooks, findWebhookByExactUrl, deleteWebhookByIdWithRetry } from '../helpers/triggerHelper';
+import { enrichAndMatchPhoneCall } from '../helpers/phoneCallHelper';
 // methods - loadOptions
 import { loadPhoneCallActivityTypes, loadCallResultTypes } from '../methods/loadOptions/callactivity.loadOptions';
 import {
@@ -149,16 +150,13 @@ export class UmsatzIoTrigger implements INodeType {
 				// ---- Stage selection ----
 				if (selectedEvent === 'updateDealStage') {
 					const scope = (this.getNodeParameter('dealStageScope', 0) as 'all' | 'pipeline' | 'specific') ?? 'all';
-
 					if (scope === 'all') {
 					}
-
-					if (scope === 'pipeline') {
+					/*if (scope === 'pipeline') {
 						const pipelineId = this.getNodeParameter('pipelineId', 0) as string;
 						if (!pipelineId) missing.push('updateDealStage → Please select a pipeline');
 						else properties.push(pipelineId);
-					}
-
+					}*/
 					if (scope === 'specific') {
 						const pipelineId = this.getNodeParameter('pipelineId', 0) as string;
 						const stageId = this.getNodeParameter('stageId', 0) as string;
@@ -187,18 +185,15 @@ export class UmsatzIoTrigger implements INodeType {
 						const phoneCallActivityTypeId = (this.getNodeParameter('phoneCallActivityTypeId', 0) as string) || '';
 						if (!phoneCallActivityTypeId) {
 							missing.push('Please select a Call Type.');
-						} else {
-							properties.push(phoneCallActivityTypeId);
 						}
 					}
+
 					// 2) Call Result (ANY | SPECIFIC)
 					const callResultMode = (this.getNodeParameter('callResultMode', 0) as 'any' | 'specific') ?? 'any';
 					if (callResultMode === 'specific') {
 						const selectedResults = (this.getNodeParameter('callResultTypes', 0) as string[]) ?? [];
 						if (!selectedResults.length) {
 							missing.push('Please select at least one Call Result.');
-						} else {
-							properties.push(...selectedResults);
 						}
 					}
 				}
@@ -333,9 +328,38 @@ export class UmsatzIoTrigger implements INodeType {
 	async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
 		const req = this.getRequestObject();
 		const body = (req.body ?? {}) as IDataObject;
+		const mode = this.getMode?.() as 'manual' | 'trigger' | string;
+		const event = this.getNodeParameter('events', 0) as string;
+
+		// --- Handling für newActivity ---
+		if (event === 'newActivity') {
+			const callTypeMode = (this.getNodeParameter('callTypeMode', 0) as 'any' | 'specific') || 'any';
+			const callResultMode = (this.getNodeParameter('callResultMode', 0) as 'any' | 'specific') || 'any';
+			const phoneCallActivityTypeId =
+				((this.getNodeParameter('phoneCallActivityTypeId', 0) as string) || '').trim() || null;
+			const callResultTypes = ((this.getNodeParameter('callResultTypes', 0) as string) || '').trim() || null;
+
+			const matched = await enrichAndMatchPhoneCall.call(this, body, {
+				callTypeMode,
+				callResultMode,
+				phoneCallActivityTypeId,
+				callResultTypes,
+			});
+
+			if (!matched) {
+				return {
+					webhookResponse: { body: { ok: true }, responseCode: 200 },
+					noWebhookResponse: true,
+				};
+			}
+
+			return {
+				webhookResponse: { body: { ok: true }, responseCode: 200 },
+				workflowData: [[{ json: matched }]],
+			};
+		}
 
 		// --- AUTO-DELETE TEST WEBHOOK ON HIT ---
-		const mode = this.getMode?.() as 'manual' | 'trigger' | string;
 		if (mode === 'manual') {
 			try {
 				const data = this.getWorkflowStaticData('node') as any;

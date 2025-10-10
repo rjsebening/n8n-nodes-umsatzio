@@ -78,7 +78,7 @@ export const instantProperties: INodeProperties[] = [
 		default: 'all',
 		options: [
 			{ name: 'All Pipelines & Stages', value: 'all' },
-			{ name: 'Specific Pipeline (Any Stage)', value: 'pipeline' },
+			/*{ name: 'Specific Pipeline (Any Stage)', value: 'pipeline' },*/
 			{ name: 'Specific Stage in Pipeline', value: 'specific' },
 		],
 		displayOptions: { show: { events: ['updateDealStage'] } },
@@ -90,6 +90,7 @@ export const instantProperties: INodeProperties[] = [
 		type: 'options',
 		typeOptions: { loadOptionsMethod: 'getPipelines' },
 		default: '',
+		required: true,
 		displayOptions: {
 			show: { events: ['updateDealStage'], dealStageScope: ['pipeline', 'specific'] },
 		},
@@ -102,6 +103,7 @@ export const instantProperties: INodeProperties[] = [
 		type: 'options',
 		typeOptions: { loadOptionsMethod: 'getStages', loadOptionsDependsOn: ['pipelineId'] },
 		default: '',
+		required: true,
 		displayOptions: {
 			show: { events: ['updateDealStage'], dealStageScope: ['specific'] },
 		},
