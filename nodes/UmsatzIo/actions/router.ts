@@ -4,9 +4,14 @@ import { handleDeal } from './deal/deal.actions';
 import { handleGraphQL } from './graphql/graphql.actions';
 import { handleWebhook } from './webhook/webhook.actions';
 import { handleActivity } from './activity/activity.actions';
+import { handleReporting } from './reporting/reporting.actions';
+import { handleAccounts } from './accounts/accounts.actions';
 
 export async function route(this: IExecuteFunctions, i: number, resource: string, operation: string): Promise<unknown> {
 	switch (resource) {
+		case 'accounts':
+			return handleAccounts.call(this, i, operation);
+
 		case 'activity':
 			return handleActivity.call(this, i, operation);
 
@@ -21,6 +26,9 @@ export async function route(this: IExecuteFunctions, i: number, resource: string
 
 		case 'webhook':
 			return handleWebhook.call(this, i, operation);
+
+		case 'reporting':
+			return handleReporting.call(this, i, operation);
 
 		default:
 			throw new ApplicationError(`Unsupported resource: ${resource}`);

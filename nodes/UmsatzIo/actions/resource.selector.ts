@@ -7,6 +7,12 @@ export const resourceSelector: INodeProperties = {
 	noDataExpression: true,
 	options: [
 		{
+			name: 'Account',
+			value: 'accounts',
+			description:
+				'Retrieve and manage user accounts in Umsatz.io – list all users or fetch detailed information for a specific account',
+		},
+		{
 			name: 'Activity',
 			value: 'activity',
 			description:
@@ -27,6 +33,12 @@ export const resourceSelector: INodeProperties = {
 			value: 'graphql',
 			description:
 				'Execute custom GraphQL queries or mutations directly against the Umsatz.io API for maximum flexibility',
+		},
+		{
+			name: 'Reporting',
+			value: 'reporting',
+			description:
+				'Sales controlling & performance reports for call activities – analyze call performance, KPIs and conversion rates of your sales activities',
 		},
 		{
 			name: 'Webhook',

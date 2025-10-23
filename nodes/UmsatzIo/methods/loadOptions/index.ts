@@ -3,3 +3,4 @@ export * as contactLoaders from './contact.loadOptions';
 export * as dealLoaders from './deal.loadOptions';
 export * as webhookLoaders from './webhook.loadOptions';
 export * as phoneCallLoaders from './callactivity.loadOptions';
+export * as accountsLoaders from './accounts.loadOptions';

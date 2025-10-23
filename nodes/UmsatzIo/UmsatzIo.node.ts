@@ -14,6 +14,8 @@ import { dealOperations, dealFields } from './actions/deal';
 import { graphQLOperations, graphQLFields } from './actions/graphql';
 import { webhookOperations, webhookFields } from './actions/webhook';
 import { activityOperations, activityFields } from './actions/activity';
+import { reportingOperations, reportingFields } from './actions/reporting';
+import { accountsOperations, accountsFields } from './actions/accounts';
 
 import * as Loaders from './methods/loadOptions';
 
@@ -38,18 +40,22 @@ export class UmsatzIo implements INodeType {
 		},
 		group: ['transform'],
 		version: 1,
-		description: 'Interact with Umsatz.io API (powered by agentur-systeme.de)',
+		description: 'Interact with the Umsatz.io API (powered by agentur-systeme.de)',
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		defaults: {
 			name: 'Umsatz.io',
 			// @ts-expect-error free-form description
-			description: 'Interact with Umsatz.io API (powered by agentur-systeme.de)',
+			description: 'Interact with the Umsatz.io API (powered by agentur-systeme.de)',
 		},
 		inputs: [{ type: 'main' } as INodeInputConfiguration],
 		outputs: [{ type: 'main' } as INodeOutputConfiguration],
 		credentials: [{ name: 'umsatzIoApi', required: true }],
 		properties: [
 			resourceSelector,
+
+			// Accounts
+			...accountsOperations,
+			...accountsFields,
 
 			// Activity
 			...activityOperations,
@@ -67,6 +73,10 @@ export class UmsatzIo implements INodeType {
 			...graphQLOperations,
 			...graphQLFields,
 
+			// Reporting
+			...reportingOperations,
+			...reportingFields,
+
 			// Webhook
 			...webhookOperations,
 			...webhookFields,
@@ -80,9 +90,7 @@ export class UmsatzIo implements INodeType {
 			...Loaders.dealLoaders,
 			...Loaders.webhookLoaders,
 			...Loaders.phoneCallLoaders,
-			/*getPhoneCallActivityTypes: loadPhoneCallActivityTypes,
-			getCallResultTypes: loadCallResultTypes,
-			getDeals,*/
+			...Loaders.accountsLoaders,
 		},
 		resourceMapping: {
 			getContactResourceMapperFields,
