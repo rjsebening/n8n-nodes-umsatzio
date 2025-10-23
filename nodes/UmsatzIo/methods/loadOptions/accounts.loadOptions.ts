@@ -20,8 +20,6 @@ export async function getAccountsForReporting(this: ILoadOptionsFunctions): Prom
     }
   `;
 
-	// Falls du später umschalten willst, kann das aus einem Hidden-Parameter kommen.
-	// Hier standardmäßig nur bezahlte Accounts:
 	const variables = { onlyPaidAccounts: true };
 
 	const data = await gqlCall(this, { query, variables });
@@ -34,7 +32,6 @@ export async function getAccountsForReporting(this: ILoadOptionsFunctions): Prom
 		const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ').trim();
 		const email = (p.email || '').toString().trim();
 
-		// Label-Priorität: "Vorname Nachname" > Email > ID
 		const baseLabel = fullName || email || id;
 		const name = `${baseLabel}`;
 

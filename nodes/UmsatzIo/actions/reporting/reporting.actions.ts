@@ -220,7 +220,6 @@ export async function callReports(this: IExecuteFunctions, i: number) {
 	const toDate = this.getNodeParameter('toDate', i) as string;
 	const returnMode = (this.getNodeParameter('returnMode', i, 'raw') as 'raw' | 'flattened') || 'raw';
 
-	// 1) Kategorie lookup via Liste (vermeidet unknown single-lookup)
 	const listRes: any = await gqlCall(this, { query: LIST_TYPES_QUERY, variables: {} });
 	const list: any[] = listRes?.phoneCallActivityTypes ?? [];
 	const hit = list.find((t) => String(t?.id) === String(phoneCallActivityTypeId));
@@ -229,10 +228,8 @@ export async function callReports(this: IExecuteFunctions, i: number) {
 		throw new ApplicationError(`Unknown phoneCallActivityTypeId or missing category: ${phoneCallActivityTypeId}`);
 	}
 
-	// 2) Query + korrekten operationName wählen
 	const { key, opName, query } = pickQuery(category);
 
-	// 3) Variables bauen – accountIds nur setzen, wenn non-empty
 	const variables: Record<string, any> = {
 		phoneCallActivityTypeId,
 		fromDate,
