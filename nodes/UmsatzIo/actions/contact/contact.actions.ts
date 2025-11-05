@@ -247,27 +247,30 @@ export async function handleContact(this: IExecuteFunctions, i: number, operatio
 		 */
 		case 'getByEmail': {
 			const email = this.getNodeParameter('email', i) as string;
+			const secondaryEmailSearch = this.getNodeParameter('secondaryEmailSearch', i, false) as boolean;
+
 			const data = await gqlCall(this, {
 				operationName: 'ContactByEmail',
-				query: `query ContactByEmail($email: String!) {
-					contactByEmail(email: $email) {
-						id
-						data
-						isArchived
-						lastContactAttempt
-						createdAt
-						updatedAt
-						author { profile { email firstName lastName } }
-						lastContactPerson {
-							id role createdAt
-							profile { id email firstName lastName }
-						}
-						deals { id name pipeline { id name } stage { id name } }
-					}
-				}`,
-				variables: { email },
+				query: `query ContactByEmail($email: String!, $secondaryEmailSearch: Boolean) {
+			contactByEmail(email: $email, secondaryEmailSearch: $secondaryEmailSearch) {
+				id
+				data
+				isArchived
+				lastContactAttempt
+				createdAt
+				updatedAt
+				author { profile { email firstName lastName } }
+				lastContactPerson {
+				id role createdAt
+				profile { id email firstName lastName }
+				}
+				deals { id name pipeline { id name } stage { id name } }
+			}
+			}`,
+				variables: { email, secondaryEmailSearch },
 			});
-			return { email, contact: data?.contactByEmail ?? null };
+
+			return { email, secondaryEmailSearch, contact: data?.contactByEmail ?? null };
 		}
 
 		case 'searchContacts': {

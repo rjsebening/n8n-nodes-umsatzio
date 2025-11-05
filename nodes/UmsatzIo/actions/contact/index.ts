@@ -258,6 +258,14 @@ export const contactFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['contact'], operation: ['getByEmail'] } },
 	},
 	{
+		displayName: 'Secondary Email Search',
+		name: 'secondaryEmailSearch',
+		type: 'boolean',
+		default: false,
+		description: 'Whether secondary email fields should also be included in the search',
+		displayOptions: { show: { resource: ['contact'], operation: ['getByEmail'] } },
+	},
+	{
 		displayName: 'Search String',
 		name: 'searchString',
 		type: 'string',
