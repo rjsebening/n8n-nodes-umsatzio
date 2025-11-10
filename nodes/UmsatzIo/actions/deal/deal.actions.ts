@@ -179,58 +179,47 @@ export async function handleDeal(this: IExecuteFunctions, i: number, operation: 
 			const name = rawName.trim() || undefined;
 
 			const updatePipelineStage = this.getNodeParameter('updatePipelineStage', i, false) as boolean;
-			const pipelineIdParam = this.getNodeParameter('pipelineId', i, '') as string;
-			const stageIdParam = this.getNodeParameter('stageId', i, '') as string;
+			const pipelineIdParam = (this.getNodeParameter('pipelineId', i, '') as string).trim();
+			const stageIdParam = (this.getNodeParameter('stageId', i, '') as string).trim();
 
 			const fieldsParam = this.getNodeParameter('fields', i, {} as IDataObject);
 			const filterUnknownFields = this.getNodeParameter('filterUnknownFields', i, true) as boolean;
 			const dataObj = await sanitizeDealResourceMapperValue.call(this, fieldsParam, 'update');
 
+			// Nichts zu updaten?
 			if (!updatePipelineStage && Object.keys(dataObj).length === 0 && name === undefined) {
 				throw new ApplicationError('No fields provided to update.');
 			}
 
-			let stageChange: any;
+			// Input für ein einziges, atomisches updateDeal bauen
+			const input: Record<string, any> = { id: dealId };
+			if (name !== undefined) input.name = name;
+			if (Object.keys(dataObj).length) input.data = dataObj;
+
 			if (updatePipelineStage) {
-				const pipelineId = String(pipelineIdParam || '').trim();
-				const stageId = String(stageIdParam || '').trim();
-				if (!pipelineId || !stageId) {
+				if (!pipelineIdParam || !stageIdParam) {
 					throw new ApplicationError('To update pipeline/stage, both pipelineId and stageId are required.');
 				}
-
-				stageChange = await gqlCall(this, {
-					operationName: 'ChangeDealPipeline',
-					query: `mutation ChangeDealPipeline($dealId: String!, $pipelineId: String!, $stageId: String!) {
-        changeDealPipeline(input: { id: $dealId, pipelineId: $pipelineId, stageId: $stageId }) {
-          id pipelineId stageId updatedAt
-        }
-      }`,
-					variables: { dealId, pipelineId, stageId },
-				});
+				input.pipelineId = pipelineIdParam;
+				input.stageId = stageIdParam;
 			}
 
-			let result: any;
-			if (name !== undefined) {
-				result = await gqlCall(this, {
-					operationName: 'UpdateDealWithName',
-					query: `mutation UpdateDealWithName($dealId: String!, $name: String!, $data: JSONObject, $filterUnknownFields: Boolean) {
-        updateDeal(input: { id: $dealId, name: $name, data: $data }, filterUnknownFields: $filterUnknownFields) {
-          id name contactId pipelineId stageId data updatedAt
-        }
-      }`,
-					variables: { dealId, name, data: dataObj, filterUnknownFields },
-				});
-			} else if (Object.keys(dataObj).length) {
-				result = await gqlCall(this, {
-					operationName: 'UpdateDeal',
-					query: `mutation UpdateDeal($dealId: String!, $data: JSONObject, $filterUnknownFields: Boolean) {
-        updateDeal(input: { id: $dealId, data: $data }, filterUnknownFields: $filterUnknownFields) {
-          id name contactId pipelineId stageId data updatedAt
-        }
-      }`,
-					variables: { dealId, data: dataObj, filterUnknownFields },
-				});
-			}
+			// Ein einziger Call – Stage-Wechsel + andere Felder zugleich
+			const { updateDeal: updated } = await gqlCall(this, {
+				operationName: 'UpdateDeal',
+				query: `mutation UpdateDeal($input: CRMDealUpdateInput!, $filterUnknownFields: Boolean!) {
+					updateDeal(input: $input, filterUnknownFields: $filterUnknownFields) {
+						id
+						name
+						contactId
+						pipelineId
+						stageId
+						data
+						updatedAt
+					}
+					}`,
+				variables: { input, filterUnknownFields },
+			});
 
 			// Optional: Note
 			const createInitialNote = this.getNodeParameter('createInitialNote', i, false) as boolean;
@@ -245,13 +234,8 @@ export async function handleDeal(this: IExecuteFunctions, i: number, operation: 
 			}
 
 			return {
-				...(result?.updateDeal ?? {}),
-				stageChange: stageChange?.changeDealPipeline ?? undefined,
-				inputData: {
-					...(name ? { name } : {}),
-					...(Object.keys(dataObj).length ? dataObj : {}),
-					...(updatePipelineStage ? { pipelineId: pipelineIdParam, stageId: stageIdParam } : {}),
-				},
+				...(updated ?? {}),
+				inputData: input,
 				initialNoteId,
 			};
 		}
@@ -527,20 +511,47 @@ export async function handleDeal(this: IExecuteFunctions, i: number, operation: 
 		 * ===================
 		 */
 		case 'changeDealPipelineStage': {
-			const dealId = this.getNodeParameter('dealId', i) as string;
-			const pipelineId = this.getNodeParameter('pipelineId', i) as string;
-			const stageId = this.getNodeParameter('stageId', i) as string;
+			const dealIdRaw = this.getNodeParameter('dealId', i) as string;
+			const pipelineIdRaw = this.getNodeParameter('pipelineId', i) as string;
+			const stageIdRaw = this.getNodeParameter('stageId', i) as string;
 
-			const data = await gqlCall(this, {
-				operationName: 'ChangeDealPipeline',
-				query: `mutation ChangeDealPipeline($dealId: String!, $pipelineId: String!, $stageId: String!) {
-					changeDealPipeline(input: { id: $dealId, pipelineId: $pipelineId, stageId: $stageId }) {
-						id pipelineId stageId updatedAt
-					}
+			const dealId = String(dealIdRaw ?? '').trim();
+			const pipelineId = String(pipelineIdRaw ?? '').trim();
+			const stageId = String(stageIdRaw ?? '').trim();
+
+			if (!dealId) throw new ApplicationError('dealId is required.');
+			if (!pipelineId || !stageId) {
+				throw new ApplicationError('To change the stage, both pipelineId and stageId are required.');
+			}
+
+			const filterUnknownFields = true; // bewusst strict und non-null
+
+			const variables = {
+				input: { id: dealId, pipelineId, stageId }, // CRMDealUpdateInput!
+				filterUnknownFields, // Boolean!
+			};
+
+			const { updateDeal: updated } = await gqlCall(this, {
+				operationName: 'UpdateDealStageOnly',
+				query: `mutation UpdateDealStageOnly($input: CRMDealUpdateInput!, $filterUnknownFields: Boolean!) {
+				updateDeal(input: $input, filterUnknownFields: $filterUnknownFields) {
+					id
+					pipelineId
+					stageId
+					name
+					contactId
+					data
+					updatedAt
+				}
 				}`,
-				variables: { dealId, pipelineId, stageId },
+				variables,
 			});
-			return data?.changeDealPipeline ?? {};
+
+			return {
+				...(updated ?? {}),
+				inputData: variables.input,
+				changed: !!updated && updated.pipelineId === pipelineId && updated.stageId === stageId,
+			};
 		}
 
 		default:
