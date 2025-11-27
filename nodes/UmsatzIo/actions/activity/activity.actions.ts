@@ -218,16 +218,14 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 				throw new ApplicationError('Missing required parameter "subject".');
 			}
 
-			// Body: plain → Slate-JSON (wie bei logEmail)
+			// Body: plain → Slate-JSON
 			const plain = this.getNodeParameter('message', i, '') as string;
 			const makeBold = this.getNodeParameter('makeBold', i, false) as boolean;
 			let richMessage = ensureSlateRichText(plain, makeBold);
 
-			// Optional: Email-Signatur per LoadOptions (userbezogen)
 			const signatureId = (this.getNodeParameter('signatureId', i, '') as string).trim();
 
 			if (signatureId) {
-				// Auth-Mode prüfen – Signaturen gibt es nur im Email+Password-Modus
 				let authMode = 'basicToken';
 				try {
 					const creds = (await this.getCredentials('umsatzIoApi')) as any;
@@ -240,7 +238,6 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 					);
 				}
 
-				// Signaturen im User-Kontext laden und passende ID suchen
 				const sigData = await gqlCall(this, {
 					operationName: 'EmailSignatures',
 					query: `query EmailSignatures {
@@ -288,11 +285,9 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 				throw new ApplicationError('At least one recipient (field "To") is required.');
 			}
 
-			// CC (optional, immer Array)
 			const ccCollection = this.getNodeParameter('cc.recipient', i, []) as IDataObject[];
 			const cc = ccCollection.map((r) => ((r.email as string) || '').trim()).filter((email) => email.length > 0);
 
-			// BCC (optional, immer Array)
 			const bccCollection = this.getNodeParameter('bcc.recipient', i, []) as IDataObject[];
 			const bcc = bccCollection.map((r) => ((r.email as string) || '').trim()).filter((email) => email.length > 0);
 
@@ -308,44 +303,43 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 
 			const umsatzSignature = this.getNodeParameter('umsatzSignature', i, false) as boolean;
 
-			// Attachments wie in deinem funktionierenden Playground-Call: immer Array (hier leer)
 			const attachments: any[] = [];
 
 			const mutation = `mutation SendEmailI(
-        $emailAccountId: String!,
-        $subject: String!,
-        $message: String,
-        $to: [String!]!,
-        $cc: [String!],
-        $bcc: [String!],
-        $attachments: [EmailAttachmentInput!],
-        $parentId: String!,
-        $parentType: ParentType!,
-        $umsatzSignature: Boolean
-      ) {
-        sendEmail(
-          input: {
-            emailAccountId: $emailAccountId,
-            subject: $subject,
-            message: $message,
-            to: $to,
-            cc: $cc,
-            bcc: $bcc,
-            attachments: $attachments,
-            parentId: $parentId,
-            parentType: $parentType,
-            umsatzSignature: $umsatzSignature
-          }
-        ) {
-          id
-          __typename
-        }
-      }`;
+								$emailAccountId: String!,
+								$subject: String!,
+								$message: String,
+								$to: [String!]!,
+								$cc: [String!],
+								$bcc: [String!],
+								$attachments: [EmailAttachmentInput!],
+								$parentId: String!,
+								$parentType: ParentType!,
+								$umsatzSignature: Boolean
+							) {
+								sendEmail(
+								input: {
+									emailAccountId: $emailAccountId,
+									subject: $subject,
+									message: $message,
+									to: $to,
+									cc: $cc,
+									bcc: $bcc,
+									attachments: $attachments,
+									parentId: $parentId,
+									parentType: $parentType,
+									umsatzSignature: $umsatzSignature
+								}
+								) {
+								id
+								__typename
+								}
+							}`;
 
 			const variables: IDataObject = {
 				emailAccountId,
 				subject,
-				message: richMessage, // Slate-JSON (Body + ggf. Signatur)
+				message: richMessage, // Slate-JSON
 				to,
 				cc,
 				bcc,
@@ -361,8 +355,6 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 				variables,
 			});
 
-			// Response wie aus dem GraphQL-Playground:
-			// { sendEmail: { id, __typename } }
 			return data ?? {};
 		}
 

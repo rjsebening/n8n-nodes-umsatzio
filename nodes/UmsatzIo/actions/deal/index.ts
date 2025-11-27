@@ -198,20 +198,6 @@ export const dealFields: INodeProperties[] = [
 
 	// ===== UPDATE DEAL =====
 	{
-		displayName: 'Search',
-		name: 'dealSearch',
-		type: 'string',
-		placeholder: 'Deal name, contact name, …',
-		default: '',
-		description: 'Optional server-side search string to narrow results',
-		displayOptions: {
-			show: {
-				resource: ['deal'],
-				operation: ['updateDeal', 'getById', 'changeDealPipelineStage'],
-			},
-		},
-	},
-	{
 		displayName: 'Deal Name or ID',
 		name: 'dealId',
 		type: 'options',

@@ -1,15 +1,7 @@
 import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { gqlCall } from '../../helpers/gql';
 
-/**
- * Deal-Picker:
- * - optionaler Filter: dealSearch (Update/GetById/ChangeStage)
- * - optionaler Filter: dealContactSearch + contactId (Activities/LogEmail)
- * - wenn contactId vorhanden -> lade Deals über Contact.deals
- * - sonst -> globale Deals-Suche mit Pagination
- */
 export async function getDeals(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-	// Suchparameter robust lesen (verschiedene Ops verwenden unterschiedliche Feldnamen)
 	let search = '';
 	try {
 		search = (this.getNodeParameter('dealSearch', 0) as string) || '';
@@ -17,14 +9,11 @@ export async function getDeals(this: ILoadOptionsFunctions): Promise<INodeProper
 	try {
 		if (!search) search = (this.getNodeParameter('dealContactSearch', 0) as string) || '';
 	} catch {}
-
-	// optional: vorgewählter Kontakt (bei Activities / LogEmail-Flow)
 	let contactId = '';
 	try {
 		contactId = (this.getNodeParameter('contactId', 0) as string) || '';
 	} catch {}
 
-	// 1) Wenn contactId gesetzt -> Deals direkt am Kontakt holen
 	if (contactId) {
 		const resp: any = await gqlCall(this, {
 			operationName: 'ContactDeals',
@@ -40,7 +29,6 @@ export async function getDeals(this: ILoadOptionsFunctions): Promise<INodeProper
 		const deals: Array<any> = resp?.contact?.deals ?? [];
 		if (!deals.length) return [{ name: 'No Deals Found for Contact', value: '__no_deals__' }];
 
-		// optional clientseitiger Name-Filter
 		const needle = search.toLowerCase();
 		const filtered = needle
 			? deals.filter((d) =>
@@ -59,7 +47,6 @@ export async function getDeals(this: ILoadOptionsFunctions): Promise<INodeProper
 		});
 	}
 
-	// 2) Globale Deals-Suche mit Pagination (einfach: erste Seite)
 	const page = 0;
 	const limit = 50;
 	const qSearch = JSON.stringify(search);

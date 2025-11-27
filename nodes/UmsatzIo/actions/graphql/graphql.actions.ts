@@ -6,7 +6,6 @@ export async function handleGraphQL(this: IExecuteFunctions, i: number, operatio
 		case 'raw': {
 			const query = this.getNodeParameter('query', i) as string;
 
-			// variables defensiv normalisieren (reines JSON)
 			let variables = this.getNodeParameter('variables', i, {}) as IDataObject;
 			try {
 				variables = JSON.parse(JSON.stringify(variables ?? {}));
@@ -18,7 +17,6 @@ export async function handleGraphQL(this: IExecuteFunctions, i: number, operatio
 			const operationName =
 				operationNameRaw && operationNameRaw.trim().length > 0 ? operationNameRaw.trim() : undefined;
 
-			// ⚠️ gqlCall gibt nur `data` zurück → garantiert serialisierbar
 			return gqlCall(this, { query, variables, operationName });
 		}
 

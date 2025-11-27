@@ -57,21 +57,6 @@ export const activityOperations: INodeProperties[] = [
 ];
 
 export const activityFields: INodeProperties[] = [
-	// Contact picker (für alle Ops)
-	// Contact picker NUR für Ops, die einen Kontakt brauchen
-	{
-		displayName: 'Search',
-		name: 'contactSearch',
-		type: 'string',
-		default: '',
-		placeholder: 'Name, email, …',
-		displayOptions: {
-			show: {
-				resource: ['activity'],
-				operation: ['createNote', 'logEmail', 'listEmailActivities', 'listNotes', 'listPhoneCallActivities'],
-			},
-		},
-	},
 	{
 		displayName: 'Contact Name or ID',
 		name: 'contactId',

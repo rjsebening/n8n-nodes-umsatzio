@@ -120,14 +120,6 @@ export const contactFields: INodeProperties[] = [
 	 * =====================
 	 */
 	{
-		displayName: 'Search',
-		name: 'contactSearch',
-		type: 'string',
-		default: '',
-		placeholder: 'Name, email, …',
-		displayOptions: { show: { resource: ['contact'], operation: ['updateContact'] } },
-	},
-	{
 		displayName: 'Contact Name or ID',
 		name: 'contactId',
 		type: 'options',

@@ -1,10 +1,9 @@
 import type { IHookFunctions, IWebhookFunctions } from 'n8n-workflow';
 import { gqlCall } from '../helpers/gql';
 
-/** Cache-TTL für URL→ID Lookups (10 Minuten) */
+/** Cache-TTL URL→ID Lookups (10 Min) */
 export const URL_ID_CACHE_TTL_MS = 10 * 60 * 1000;
 
-/** Webhooks abrufen */
 export async function listWebhooks(
 	ctx: IHookFunctions | IWebhookFunctions,
 ): Promise<Array<{ id: string; url: string; triggers?: string[] }>> {
@@ -18,7 +17,6 @@ export async function listWebhooks(
 	}
 }
 
-/** Exakte URL → Webhook finden (mit leichtem Cache) */
 export async function findWebhookByExactUrl(
 	ctx: IHookFunctions | IWebhookFunctions,
 	url: string,
@@ -42,7 +40,6 @@ export async function findWebhookByExactUrl(
 	return undefined;
 }
 
-/** Delete mit Retry & Exponential Backoff (deine “alte” Version, die funktioniert) */
 export async function deleteWebhookByIdWithRetry(
 	ctx: IHookFunctions | IWebhookFunctions,
 	id: string,

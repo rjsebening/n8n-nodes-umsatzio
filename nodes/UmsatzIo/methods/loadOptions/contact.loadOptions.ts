@@ -3,15 +3,12 @@ import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { gqlCall } from '../../helpers/gql';
 import { getFieldById } from '../resourceMappers/contact.resourceMapper';
 
-/**
- * Kontakte laden (für Dropdowns etc.). Nutzt optional 'contactSearch'.
- */
+
 export async function getContacts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 	let search = '';
 	try {
 		search = (this.getNodeParameter('contactSearch', 0) as string) || '';
 	} catch {
-		// optional
 	}
 
 	const page = 0;
@@ -45,12 +42,7 @@ export async function getContacts(this: ILoadOptionsFunctions): Promise<INodePro
 	});
 }
 
-/**
- * Dropdown-Felder (Name/Label + ID) – für ältere Mappings, falls noch verwendet.
- * Filtert lokal nach fieldType (dropdown/select/booleanDropdown).
- */
 export async function getDropdownContactFields(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-	// Wir nutzen die Cards-API direkt, um Feldliste (inkl. fieldType) zu erhalten.
 	const res: any = await gqlCall(this, {
 		operationName: 'ContactCards',
 		query: `query ContactCards {
@@ -81,10 +73,6 @@ export async function getDropdownContactFields(this: ILoadOptionsFunctions): Pro
 	}));
 }
 
-/**
- * Dropdown-Optionen für ein spezifisches Feld innerhalb der Fixed-Collection "dropdownFields.field".
- * Speichert NUR den 'value' der Option (nicht die option.id).
- */
 export async function getDropdownOptionsContactForField(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 	let allItems: Array<{ dropdownField?: string; dropdownValue?: string }> = [];
 	try {
@@ -93,7 +81,6 @@ export async function getDropdownOptionsContactForField(this: ILoadOptionsFuncti
 			dropdownValue?: string;
 		}>;
 	} catch {
-		// optional
 	}
 
 	const currentItemIndex = allItems.findIndex((item) => item.dropdownField && !item.dropdownValue);
@@ -103,7 +90,6 @@ export async function getDropdownOptionsContactForField(this: ILoadOptionsFuncti
 		return [{ name: 'No Field Selected', value: '__no_field__' }];
 	}
 
-	// 1) Versuch: Feld inkl. Optionen aus dem Resource-Mapper-Cache holen
 	const mapperField = await getFieldById.call(this, fieldId);
 	if (Array.isArray(mapperField?.options) && mapperField.options.length) {
 		return mapperField.options.map((o: any) => ({
@@ -112,7 +98,6 @@ export async function getDropdownOptionsContactForField(this: ILoadOptionsFuncti
 		}));
 	}
 
-	// 2) Fallback: Einzel-Feld-Query
 	const fieldResp = await gqlCall(this, {
 		operationName: 'Field',
 		query: `query Field($fieldId: ID!) {

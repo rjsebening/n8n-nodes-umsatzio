@@ -1,10 +1,6 @@
 import { IExecuteFunctions, ApplicationError } from 'n8n-workflow';
 import { gqlCall } from './gql';
 
-/**
- * Plaintext → minimal gültiges Slate-JSON (String). Optional fett.
- * Lässt bestehendes JSON (beginnend mit [ oder {) unverändert.
- */
 export function ensureSlateRichText(input: string, bold?: boolean): string {
 	const trimmed = (input ?? '').trim();
 	if (!trimmed) {
@@ -16,10 +12,6 @@ export function ensureSlateRichText(input: string, bold?: boolean): string {
 	return JSON.stringify(node);
 }
 
-/**
- * Note erzeugen (parentId = Contact/Deal) und optional pinnen.
- * Fehler beim Pin werden bewusst nicht eskaliert.
- */
 export async function createNoteWithOptionalPin(
 	ctx: IExecuteFunctions,
 	parentId: string,
@@ -51,7 +43,6 @@ export async function createNoteWithOptionalPin(
 				variables: { noteId },
 			});
 		} catch {
-			// Pin ist optional – wir ignorieren Fehler bewusst
 		}
 	}
 	return noteId;
