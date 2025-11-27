@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-umsatzio",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Connect n8n with Umsatz.io (powerd by Jörg Sebening - joergsebening.de)",
   "type": "commonjs",
   "keywords": [
