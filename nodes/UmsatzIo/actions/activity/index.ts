@@ -45,6 +45,12 @@ export const activityOperations: INodeProperties[] = [
 				action: 'Log email on contact',
 				description: 'Manually log an email activity to a contact (e.g., external correspondence)',
 			},
+			{
+				name: 'Send Email',
+				value: 'sendEmail',
+				action: 'Send an email',
+				description: 'Send an email and link it to a contact or deal',
+			},
 		],
 		default: 'createNote',
 	},
@@ -172,6 +178,239 @@ export const activityFields: INodeProperties[] = [
 			show: {
 				resource: ['activity'],
 				operation: ['getPhoneCallActivityById'],
+			},
+		},
+	},
+	// -------------------------
+	// Activity: Send Email
+	// -------------------------
+	{
+		displayName: 'Email Account Name or ID',
+		name: 'emailAccountId',
+		type: 'options',
+		default: '',
+		required: true,
+		description:
+			'Select the email account from which the email should be sent. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+		typeOptions: {
+			loadOptionsMethod: 'getEmailAccounts',
+		},
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
+			},
+		},
+	},
+	{
+		displayName: 'Parent Type',
+		name: 'parentType',
+		type: 'options',
+		required: true,
+		default: 'contact',
+		options: [
+			{
+				name: 'Contact',
+				value: 'contact',
+			},
+			{
+				name: 'Deal',
+				value: 'deal',
+			},
+		],
+		description: 'Entity to which this email should be linked',
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
+			},
+		},
+	},
+	{
+		displayName: 'Parent ID',
+		name: 'parentId',
+		type: 'string',
+		required: true,
+		default: '',
+		description: 'ID of the contact or deal in Umsatz',
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
+			},
+		},
+	},
+	{
+		displayName: 'To',
+		name: 'to',
+		type: 'fixedCollection',
+		placeholder: 'Add Recipient',
+		typeOptions: {
+			multipleValues: true,
+		},
+		default: {},
+		options: [
+			{
+				displayName: 'Recipient',
+				name: 'recipient',
+				values: [
+					{
+						displayName: 'Email',
+						name: 'email',
+						type: 'string',
+						default: '',
+						placeholder: 'recipient@example.com',
+						description: 'Email address of the main recipient',
+					},
+				],
+			},
+		],
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
+			},
+		},
+		description: 'One or more primary recipients',
+	},
+	{
+		displayName: 'CC',
+		name: 'cc',
+		type: 'fixedCollection',
+		placeholder: 'Add CC Recipient',
+		typeOptions: {
+			multipleValues: true,
+		},
+		default: {},
+		options: [
+			{
+				displayName: 'Recipient',
+				name: 'recipient',
+				values: [
+					{
+						displayName: 'Email',
+						name: 'email',
+						type: 'string',
+						default: '',
+						placeholder: 'cc@example.com',
+						description: 'Email address of the CC recipient',
+					},
+				],
+			},
+		],
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
+			},
+		},
+		description: 'Optional CC recipients',
+	},
+	{
+		displayName: 'BCC',
+		name: 'bcc',
+		type: 'fixedCollection',
+		placeholder: 'Add BCC Recipient',
+		typeOptions: {
+			multipleValues: true,
+		},
+		default: {},
+		options: [
+			{
+				displayName: 'Recipient',
+				name: 'recipient',
+				values: [
+					{
+						displayName: 'Email',
+						name: 'email',
+						type: 'string',
+						default: '',
+						placeholder: 'bcc@example.com',
+						description: 'Email address of the BCC recipient',
+					},
+				],
+			},
+		],
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
+			},
+		},
+		description: 'Optional BCC recipients',
+	},
+	{
+		displayName: 'Subject',
+		name: 'subject',
+		type: 'string',
+		required: true,
+		default: '',
+		description: 'Subject line of the email',
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
+			},
+		},
+	},
+
+	{
+		displayName: 'Message (JSON)',
+		name: 'message',
+		type: 'string',
+		typeOptions: {
+			alwaysOpenEditWindow: true,
+			rows: 15,
+		},
+		default: '',
+		description: 'Rich text content as JSON (Slate format) – you can pass the JSON string you get from Umsatz',
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
+			},
+		},
+	},
+	{
+		displayName:
+			'Email signatures are owned by the user and require user login. API keys cannot access the user email signature. Change the credentials for this process.',
+		name: 'signatureAuthInfo',
+		type: 'notice',
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
+			},
+		},
+	},
+	{
+		displayName: 'Email Signature Name or ID',
+		name: 'signatureId',
+		type: 'options',
+		default: '',
+		description:
+			'Optional email signature to append to the message body. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+		typeOptions: {
+			loadOptionsMethod: 'getEmailSignatures',
+		},
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
+			},
+		},
+	},
+	{
+		displayName: 'Umsatz.io E-Mail-Branding',
+		name: 'umsatzSignature',
+		type: 'boolean',
+		default: false,
+		description: 'Whether you want umsatz.io branding to appear in your emails',
+		displayOptions: {
+			show: {
+				resource: ['activity'],
+				operation: ['sendEmail'],
 			},
 		},
 	},

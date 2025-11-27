@@ -77,13 +77,32 @@ async function doGraphQL(ctx: any, url: string, headers: any, body: any) {
 		},
 		body: safeBody,
 	});
+
 	if (resp?.errors?.length) {
-		const first = resp.errors[0] ?? {};
-		const msg = first?.message || 'GraphQL error';
-		const code = first?.extensions?.code || '';
-		const error: any = new ApplicationError(msg);
-		(error as any).graphQLErrorCode = code;
-		throw error;
+		const [firstError] = resp.errors as Array<{
+			message?: string;
+			path?: string[];
+			extensions?: { code?: string; [key: string]: any };
+			[key: string]: any;
+		}>;
+
+		console.error('Umsatz.io GraphQL error:', JSON.stringify(resp.errors, null, 2));
+
+		const code = firstError?.extensions?.code;
+		const path = firstError?.path?.join('.') || '';
+		const baseMessage = firstError?.message || 'GraphQL error';
+
+		const parts: string[] = [baseMessage];
+		if (code) parts.push(`code=${code}`);
+		if (path) parts.push(`path=${path}`);
+
+		const msg = parts.join(' | ');
+
+		throw new ApplicationError(msg, {
+			extra: {
+				graphqlErrors: resp.errors,
+			},
+		});
 	}
 
 	return resp?.data ?? {};

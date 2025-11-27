@@ -207,6 +207,165 @@ export async function handleActivity(this: IExecuteFunctions, i: number, operati
 			return await getPhoneCallActivityById(this, phoneCallActivityId);
 		}
 
+		case 'sendEmail': {
+			const emailAccountId = (this.getNodeParameter('emailAccountId', i) as string).trim();
+			const subject = (this.getNodeParameter('subject', i) as string).trim();
+
+			if (!emailAccountId) {
+				throw new ApplicationError('Missing required parameter "emailAccountId".');
+			}
+			if (!subject) {
+				throw new ApplicationError('Missing required parameter "subject".');
+			}
+
+			// Body: plain → Slate-JSON (wie bei logEmail)
+			const plain = this.getNodeParameter('message', i, '') as string;
+			const makeBold = this.getNodeParameter('makeBold', i, false) as boolean;
+			let richMessage = ensureSlateRichText(plain, makeBold);
+
+			// Optional: Email-Signatur per LoadOptions (userbezogen)
+			const signatureId = (this.getNodeParameter('signatureId', i, '') as string).trim();
+
+			if (signatureId) {
+				// Auth-Mode prüfen – Signaturen gibt es nur im Email+Password-Modus
+				let authMode = 'basicToken';
+				try {
+					const creds = (await this.getCredentials('umsatzIoApi')) as any;
+					authMode = String(creds?.authMode || 'basicToken');
+				} catch {}
+
+				if (authMode !== 'emailPassword') {
+					throw new ApplicationError(
+						'Using an email signature requires Email & Password authentication. Please switch the Umsatz.io credentials to "Email & Password" mode.',
+					);
+				}
+
+				// Signaturen im User-Kontext laden und passende ID suchen
+				const sigData = await gqlCall(this, {
+					operationName: 'EmailSignatures',
+					query: `query EmailSignatures {
+            emailSignatures {
+              id
+              content
+            }
+          }`,
+				});
+
+				const signatures = (sigData?.emailSignatures ?? []) as Array<{
+					id: string;
+					content?: string;
+				}>;
+
+				const selected = signatures.find((s) => s.id === signatureId);
+
+				if (!selected) {
+					throw new ApplicationError(`Selected email signature with id "${signatureId}" was not found.`);
+				}
+
+				if (selected.content) {
+					try {
+						const msgNodes = JSON.parse(richMessage);
+						const sigNodes = JSON.parse(selected.content);
+
+						const msgArr = Array.isArray(msgNodes) ? msgNodes : [msgNodes];
+						const sigArr = Array.isArray(sigNodes) ? sigNodes : [sigNodes];
+
+						const merged = [...msgArr, ...sigArr];
+						richMessage = JSON.stringify(merged);
+					} catch (error) {
+						throw new ApplicationError('Failed to merge email body with selected signature.', {
+							cause: error as Error,
+						});
+					}
+				}
+			}
+
+			// TO (fixedCollection → string[])
+			const toCollection = this.getNodeParameter('to.recipient', i, []) as IDataObject[];
+			const to = toCollection.map((r) => ((r.email as string) || '').trim()).filter((email) => email.length > 0);
+
+			if (!to.length) {
+				throw new ApplicationError('At least one recipient (field "To") is required.');
+			}
+
+			// CC (optional, immer Array)
+			const ccCollection = this.getNodeParameter('cc.recipient', i, []) as IDataObject[];
+			const cc = ccCollection.map((r) => ((r.email as string) || '').trim()).filter((email) => email.length > 0);
+
+			// BCC (optional, immer Array)
+			const bccCollection = this.getNodeParameter('bcc.recipient', i, []) as IDataObject[];
+			const bcc = bccCollection.map((r) => ((r.email as string) || '').trim()).filter((email) => email.length > 0);
+
+			const parentType = this.getNodeParameter('parentType', i) as string; // 'contact' | 'deal'
+			const parentId = (this.getNodeParameter('parentId', i) as string).trim();
+
+			if (!parentId) {
+				throw new ApplicationError('Missing required parameter "parentId".');
+			}
+			if (!['contact', 'deal'].includes(parentType)) {
+				throw new ApplicationError(`Unsupported parentType "${parentType}". Expected "contact" or "deal".`);
+			}
+
+			const umsatzSignature = this.getNodeParameter('umsatzSignature', i, false) as boolean;
+
+			// Attachments wie in deinem funktionierenden Playground-Call: immer Array (hier leer)
+			const attachments: any[] = [];
+
+			const mutation = `mutation SendEmailI(
+        $emailAccountId: String!,
+        $subject: String!,
+        $message: String,
+        $to: [String!]!,
+        $cc: [String!],
+        $bcc: [String!],
+        $attachments: [EmailAttachmentInput!],
+        $parentId: String!,
+        $parentType: ParentType!,
+        $umsatzSignature: Boolean
+      ) {
+        sendEmail(
+          input: {
+            emailAccountId: $emailAccountId,
+            subject: $subject,
+            message: $message,
+            to: $to,
+            cc: $cc,
+            bcc: $bcc,
+            attachments: $attachments,
+            parentId: $parentId,
+            parentType: $parentType,
+            umsatzSignature: $umsatzSignature
+          }
+        ) {
+          id
+          __typename
+        }
+      }`;
+
+			const variables: IDataObject = {
+				emailAccountId,
+				subject,
+				message: richMessage, // Slate-JSON (Body + ggf. Signatur)
+				to,
+				cc,
+				bcc,
+				attachments,
+				parentId,
+				parentType,
+				umsatzSignature,
+			};
+
+			const data = await gqlCall(this, {
+				operationName: 'SendEmailI',
+				query: mutation,
+				variables,
+			});
+
+			// Response wie aus dem GraphQL-Playground:
+			// { sendEmail: { id, __typename } }
+			return data ?? {};
+		}
+
 		default:
 			throw new ApplicationError(`Unsupported activity operation: ${operation}`);
 	}
